@@ -57,6 +57,7 @@ def test_get_environment_variables_from_schema(schema, expected_env_vars, prefix
         ({("a", "b"): (int,)}, {"A_B": "1"}, {"a": {"b": 1}}),
         ({("a",): (int, str)}, {"A": "a"}, {"a": "a"}),
         ({("a",): (int, bool)}, {"A": "a"}, {}),
+        ({("a",): (list[int],)}, {"A": "a"}, {}),
         (
             {("a", "b"): (int,), ("a", "c"): (str,)},
             {"A_B": "1", "A_C": "2"},
@@ -70,3 +71,12 @@ def test_load_settings_from_environment(schema, env, expected_settings, prefix):
         env = {f"{prefix}_{key}": value for key, value in env.items()}
     with patch.dict(os.environ, env, clear=True):
         assert load_settings_from_environment(schema, prefix=prefix) == expected_settings
+
+
+@pytest.mark.parametrize(
+    "schema, env", [({("a",): (object,)}, {"A": "a"}), ({("a",): (list,)}, {"A": "a"})]
+)
+def test_load_settings_from_environment_error(schema, env):
+    with patch.dict(os.environ, env, clear=True):
+        with pytest.raises(Exception):
+            load_settings_from_environment(schema)
