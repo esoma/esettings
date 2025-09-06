@@ -29,7 +29,12 @@ def get_environment_variables_from_schema(
     return {name: _build_env_key(*prefixes, *name) for name in schema}
 
 
-def load_settings_from_environment(schema: Schema, *, prefix: str | None = None) -> Settings:
+def load_settings_from_environment(
+    schema: Schema,
+    *,
+    prefix: str | None = None,
+    on_failure: Callable[[tuple[str, ...], str], None] = lambda n, v: None,
+) -> Settings:
     settings: Settings = {}
 
     environment_variables = get_environment_variables_from_schema(schema, prefix=prefix)
@@ -49,6 +54,7 @@ def load_settings_from_environment(schema: Schema, *, prefix: str | None = None)
                 continue
             break
         else:
+            on_failure(name, raw_value)
             continue
         # store in the correct place
         target = settings

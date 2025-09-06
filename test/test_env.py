@@ -1,4 +1,5 @@
 import os
+from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
@@ -71,6 +72,13 @@ def test_load_settings_from_environment(schema, env, expected_settings, prefix):
         env = {f"{prefix}_{key}": value for key, value in env.items()}
     with patch.dict(os.environ, env, clear=True):
         assert load_settings_from_environment(schema, prefix=prefix) == expected_settings
+
+
+def test_load_settings_from_environment_on_failure():
+    on_failure_mock = MagicMock()
+    with patch.dict(os.environ, {"A": "x"}, clear=True):
+        load_settings_from_environment({("a",): (int,)}, on_failure=on_failure_mock)
+    on_failure_mock.assert_called_once_with(("a",), "x")
 
 
 @pytest.mark.parametrize(
