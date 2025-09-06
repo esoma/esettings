@@ -1,6 +1,7 @@
 import os
 
 from esettings import Schema
+from esettings import get_environment_variables_from_schema
 from esettings import load_settings_from_environment
 from esettings import validate_schema
 
@@ -17,5 +18,6 @@ schema: Schema = {
 }
 validate_schema(schema)
 
+print(get_environment_variables_from_schema(schema, prefix="DOORLORD"))
 env_settings = load_settings_from_environment(schema, prefix="DOORLORD")
 print(env_settings)

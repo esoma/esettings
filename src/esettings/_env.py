@@ -1,4 +1,4 @@
-__all__ = []
+__all__ = ["load_settings_from_environment", "get_environment_variables_from_schema"]
 
 from itertools import islice
 from os import environ
@@ -13,23 +13,32 @@ from typing import Union
 from typing import get_args as get_typing_args
 from typing import get_origin as get_typing_origin
 
+from ._schema import PlainSchemaType
 from ._schema import Schema
 from ._schema import SchemaType
 from ._settings import Settings
 
 
-def load_settings_from_environment(schema: Schema, *, prefix: str | None = None) -> Settings:
-    settings: Settings = {}
-
+def get_environment_variables_from_schema(
+    schema: Schema, *, prefix: str | None = None
+) -> dict[tuple[str, ...], str]:
     prefixes: tuple[str, ...] = ()
     if prefix is not None:
         prefixes = (prefix,)
 
+    return {name: _build_env_key(*prefixes, *name) for name in schema}
+
+
+def load_settings_from_environment(schema: Schema, *, prefix: str | None = None) -> Settings:
+    settings: Settings = {}
+
+    environment_variables = get_environment_variables_from_schema(schema, prefix=prefix)
+
     for name, types in schema.items():
         # get the value from the environment
-        env_key = _build_env_key(*prefixes, *name)
+        env_var = environment_variables[name]
         try:
-            raw_value = environ[env_key]
+            raw_value = environ[env_var]
         except KeyError:
             continue
         # convert to the correct type
@@ -98,7 +107,7 @@ def _convert_value_to_bool(raw_value: str, type: type[SchemaType]) -> bool:
     raise _TypeConversionError()
 
 
-def _convert_value_to_list(raw_value: str, type: type[SchemaType]) -> list[SchemaType]:
+def _convert_value_to_list(raw_value: str, type: type[SchemaType]) -> list[PlainSchemaType]:
     try:
         typing_arg = get_typing_args(type)[0]
     except IndexError:
@@ -108,13 +117,14 @@ def _convert_value_to_list(raw_value: str, type: type[SchemaType]) -> list[Schem
     else:
         sub_types = (typing_arg,)
 
-    values: list[SchemaType] = []
+    values: list[PlainSchemaType] = []
     for raw_value in raw_value.split(","):
         for sub_type in sub_types:
             try:
                 value = _convert_value_to_type(raw_value, sub_type)
             except _TypeConversionError:
                 continue
+            assert not isinstance(value, list)
             values.append(value)
             break
         else:
