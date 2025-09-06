@@ -2,7 +2,7 @@ __all__ = ["Settings", "SettingsType"]
 
 from typing import TypeAlias
 
-SettingsType: TypeAlias = (
-    "None | int | float | str | bool | list[SettingsType] | dict[str, SettingsType]"
-)
+from ._schema import SchemaType
+
+SettingsType: TypeAlias = "SchemaType | dict[str, SchemaType]"
 Settings: TypeAlias = dict[str, SettingsType]

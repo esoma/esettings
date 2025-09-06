@@ -2,6 +2,7 @@ import os
 
 from esettings import Schema
 from esettings import load_settings_from_environment
+from esettings import validate_schema
 
 os.environ["DOORLORD_X"] = "0"
 os.environ["DOORLORD_Y"] = ""
@@ -14,6 +15,7 @@ schema: Schema = {
     ("sub_if", "a"): (list[bool | str],),
     ("sub_if", "b"): (list[bool], list[str]),
 }
+validate_schema(schema)
 
 env_settings = load_settings_from_environment(schema, prefix="DOORLORD")
 print(env_settings)

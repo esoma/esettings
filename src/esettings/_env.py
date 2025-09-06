@@ -3,6 +3,7 @@ __all__ = []
 from itertools import islice
 from os import environ
 from re import sub as re_sub
+from types import NoneType
 from types import UnionType
 from typing import Callable
 from typing import Final
@@ -45,6 +46,7 @@ def load_settings_from_environment(schema: Schema, *, prefix: str | None = None)
         for component in islice(name, len(name) - 1):
             try:
                 target = settings[component]
+                assert isinstance(target, dict)
             except KeyError:
                 target = settings[component] = {}
         target[name[-1]] = value
@@ -53,13 +55,11 @@ def load_settings_from_environment(schema: Schema, *, prefix: str | None = None)
 
 
 def _build_env_key(*name: str) -> str:
-    return "_".join(_sanitize_env_component(c) for c in name)
+    return "_".join(_convert_name_component_to_env_key(c) for c in name)
 
 
-def _sanitize_env_component(component: str) -> str:
-    key = re_sub(r"[^a-zA-Z0-9\-_\s]", "", component)
-    key = re_sub(r"[\-\s]+", "_", key)
-    return key.strip("_").upper()
+def _convert_name_component_to_env_key(component: str) -> str:
+    return re_sub(r"[\-\s]+", "_", component).upper()
 
 
 class _TypeConversionError(RuntimeError):
@@ -69,6 +69,13 @@ class _TypeConversionError(RuntimeError):
 def _convert_value_to_int(raw_value: str, type: type[SchemaType]) -> int:
     try:
         return int(raw_value)
+    except ValueError:
+        raise _TypeConversionError()
+
+
+def _convert_value_to_float(raw_value: str, type: type[SchemaType]) -> float:
+    try:
+        return float(raw_value)
     except ValueError:
         raise _TypeConversionError()
 
@@ -115,10 +122,13 @@ def _convert_value_to_list(raw_value: str, type: type[SchemaType]) -> list[Schem
     return values
 
 
-_CONVERT_VALUE_TO_TYPE: Final[Mapping[type[SchemaType], Callable[[str], SchemaType]]] = {
-    None: _convert_value_to_none,
+_CONVERT_VALUE_TO_TYPE: Final[
+    Mapping[type[SchemaType], Callable[[str, type[SchemaType]], SchemaType]]
+] = {
+    NoneType: _convert_value_to_none,
     str: _convert_value_to_str,
     int: _convert_value_to_int,
+    float: _convert_value_to_float,
     bool: _convert_value_to_bool,
     list: _convert_value_to_list,
 }
@@ -128,6 +138,9 @@ def _convert_value_to_type(raw_value: str, type: type[SchemaType]) -> SchemaType
     base_type = get_typing_origin(type)
     if base_type is None:
         base_type = type
+    if base_type is None:
+        base_type = NoneType
+
     try:
         convert_value_to_type = _CONVERT_VALUE_TO_TYPE[base_type]
     except KeyError:
