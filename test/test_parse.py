@@ -6,14 +6,16 @@ from datetime import timezone
 from math import inf
 from math import isnan
 from math import nan
+from unittest.mock import ANY
+from unittest.mock import MagicMock
 
 import pytest
 
-from esettings._convert import convert_string
+from esettings._parse import store_settings
 
 
 @pytest.mark.parametrize(
-    "input, output",
+    "raw_value, expected_value",
     [
         ("''", ""),
         ('""', ""),
@@ -78,18 +80,44 @@ from esettings._convert import convert_string
         ("{x='a',  y  =  4  }", {"x": "a", "y": 4}),
     ],
 )
-@pytest.mark.parametrize("extra", ["", "# test", "\n"])
-def test_convert_string_basic(input, output, extra):
-    assert convert_string(input + extra) == output
+@pytest.mark.parametrize("extra_value", ["", "# test", "\n"])
+@pytest.mark.parametrize(
+    "raw_key, expected_key",
+    [
+        ("a", ("a",)),
+        ("a.b", ("a", "b")),
+        ("   a    .    b   ", ("a", "b")),
+        ("'a'.'b'", ("a", "b")),
+        ('"a"."b"', ("a", "b")),
+        ("'a.b'", ("a.b",)),
+        ('"a.b"', ("a.b",)),
+        ('"a\\""."b"', ('a"', "b")),
+        ("[a]\nb", ("a", "b")),
+        ("[a.b]\nc", ("a", "b", "c")),
+        ("0", ("0",)),
+    ],
+)
+def test_store_settings_basic(raw_value, expected_value, extra_value, raw_key, expected_key):
+    expected_settings = target = {}
+    for name in expected_key[:-1]:
+        target = expected_settings.setdefault(name, {})
+    target[expected_key[-1]] = expected_value
+
+    settings = {}
+    store_settings(settings, raw_key, raw_value + extra_value, lambda: None)
+    assert settings == expected_settings
 
 
 @pytest.mark.parametrize("input", ["nan", "+nan", "-nan"])
-def test_convert_string_nan(input):
-    assert isnan(convert_string(input))
+def test_store_settings_nan(input):
+    settings = {}
+    store_settings(settings, "a", input, lambda: None)
+    assert settings == {"a": ANY}
+    assert isnan(settings["a"])
 
 
 @pytest.mark.parametrize(
-    "input",
+    "raw_value",
     [
         "'",
         "'''",
@@ -105,6 +133,60 @@ def test_convert_string_nan(input):
         "''\nx = 12",
     ],
 )
-def test_convert_string_invalid(input):
-    with pytest.raises(ValueError):
-        convert_string(input)
+def test_store_settings_invalid_value(raw_value):
+    def _():
+        raise RuntimeError()
+
+    settings = {}
+    with pytest.raises(RuntimeError):
+        store_settings(settings, "a", raw_value, _)
+    assert settings == {}
+
+
+@pytest.mark.parametrize(
+    "raw_key",
+    [
+        "",
+        "'",
+        "'''",
+        '"',
+        '"""',
+        "''''",
+        '""""',
+        "'\n'",
+        '"\n"',
+        "''\n1",
+        "{\n}",
+        "[hello]",
+        "[hello]x",
+        "[[hello]]",
+        "[[hello]]\nx",
+        "a=",
+        "a = 0",
+        "a=0\nb",
+    ],
+)
+def test_store_settings_invalid_key(raw_key):
+    def _():
+        raise RuntimeError()
+
+    settings = {}
+    with pytest.raises(RuntimeError):
+        store_settings(settings, raw_key, "0", _)
+    assert settings == {}
+
+
+def test_store_settings_dict_overwrite():
+    fail_mock = MagicMock()
+    settings = {"a": {}}
+    store_settings(settings, "a", "0", fail_mock)
+    assert settings == {"a": {}}
+    fail_mock.assert_called_once()
+
+
+def test_store_settings_not_dict_overwrite():
+    fail_mock = MagicMock()
+    settings = {"a": 1}
+    store_settings(settings, "a.b", "2", fail_mock)
+    assert settings == {"a": 1}
+    fail_mock.assert_called_once()

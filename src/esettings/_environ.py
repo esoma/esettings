@@ -15,6 +15,7 @@ from typing import get_args as get_typing_args
 from typing import get_origin as get_typing_origin
 
 from ._convert import TypeConversionError
+from ._convert import convert_string
 from ._convert import convert_value_to_type
 from ._schema import PlainSchemaType
 from ._schema import Schema
@@ -23,11 +24,14 @@ from ._settings import Settings
 
 
 def load_from_environ(
-    environ: Mapping[str, str] = os.environ, *, prefix: str = "CONFIG."
+    environ: Mapping[str, str] = os.environ,
+    *,
+    prefix: str = "CONFIG.",
+    on_failure: Callable[[str, str | None], None] = lambda n, v: None,
 ) -> Settings:
     settings: Settings = {}
 
-    for key, value in environ.items():
+    for key, raw_value in environ.items():
         if key.startswith(prefix):
             names = key[len(prefix) :].split(".")
             target = settings
@@ -39,9 +43,10 @@ def load_from_environ(
                 except KeyError:
                     target = settings[name] = {}
             try:
-                value = next(argv_i)
-            except StopIteration:
-                break
+                value = convert_string(raw_value)
+            except ValueError:
+                on_failure(arg, raw_value)
+                continue
             target[names[-1]] = value
 
     return settings
