@@ -6,6 +6,7 @@ from os import environ
 from re import sub as re_sub
 from types import NoneType
 from types import UnionType
+from typing import Any
 from typing import Callable
 from typing import Final
 from typing import Mapping
@@ -14,39 +15,23 @@ from typing import Union
 from typing import get_args as get_typing_args
 from typing import get_origin as get_typing_origin
 
-from ._convert import TypeConversionError
-from ._convert import convert_string
-from ._convert import convert_value_to_type
-from ._schema import PlainSchemaType
-from ._schema import Schema
-from ._schema import SchemaType
-from ._settings import Settings
+from ._parse import store_settings
 
 
 def load_from_environ(
-    environ: Mapping[str, str] = os.environ,
+    environ: Mapping[str, str] | None = None,
     *,
     prefix: str = "CONFIG.",
     on_failure: Callable[[str, str | None], None] = lambda n, v: None,
-) -> Settings:
-    settings: Settings = {}
+) -> dict[str, Any]:
+    settings: dict[str, Any] = {}
+
+    if environ is None:
+        environ = os.environ
 
     for key, raw_value in environ.items():
         if key.startswith(prefix):
-            names = key[len(prefix) :].split(".")
-            target = settings
-            for name in islice(names, len(names) - 1):
-                try:
-                    target = settings[name]
-                    if not isinstance(target, dict):
-                        target = settings[name] = {}
-                except KeyError:
-                    target = settings[name] = {}
-            try:
-                value = convert_string(raw_value)
-            except ValueError:
-                on_failure(arg, raw_value)
-                continue
-            target[names[-1]] = value
+            raw_key = key[len(prefix) :]
+            store_settings(settings, raw_key, raw_value, lambda: on_failure(key, raw_value))
 
     return settings
