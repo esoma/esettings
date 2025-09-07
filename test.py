@@ -1,32 +1,11 @@
 import os
-from argparse import ArgumentParser
 
-from esettings import Schema
-from esettings import build_argument_parser
-from esettings import get_environment_variables_from_schema
-from esettings import load_settings_from_environment
-from esettings import validate_schema
+from esettings._argparse import load_settings_from_argv
 
-os.environ["DOORLORD_X"] = "0"
-os.environ["DOORLORD_Y"] = ""
-os.environ["DOORLORD_SUB_IF_A"] = "true,false,ok"
-os.environ["DOORLORD_SUB_IF_B"] = "true,false,ok"
 
-schema: Schema = {
-    ("x",): (int,),
-    ("y",): (None, str),
-    ("sub_if", "a"): (list[bool | str],),
-    ("sub_if", "b"): (list[bool], list[str]),
-}
-validate_schema(schema)
+def on_failure(n):
+    print(f"{n} extra")
 
-ap = ArgumentParser()
-build_argument_parser(ap, schema, help={("x",): "abc123"})
-x = ap.parse_args()
-print(x)
 
-"""
-print(get_environment_variables_from_schema(schema, prefix="DOORLORD"))
-env_settings = load_settings_from_environment(schema, prefix="DOORLORD")
-print(env_settings)
-"""
+s = load_settings_from_argv(on_failure=on_failure)
+print(s)
