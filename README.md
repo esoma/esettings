@@ -21,7 +21,7 @@ def load(
 `alltoml.load` is an opinionated way to load configuration from several sources with inheritance.
 
 It first prioritizes values provided on the command line. This follows the behavior of
-[alltoml.load_from_argv]("#load_from_argv"). Arguments should be prefixed with `--config.` to
+[alltoml.load_from_argv](#load_from_argv). Arguments should be prefixed with `--config.` to
 appear in the output. Unexpected arguments (ones not prefixed with `--config.`) will cause the
 program to exit with an error code of `1` and an error message. If there is a problem parsing an
 argument then a warning is emitted and it is ignored.
@@ -42,7 +42,7 @@ If the file is missing or there is some error parsing the file a warning is emit
 ignored.
 
 Next environment variables are consulted. This follows the behavior of
-[alltoml.load_from_environ]("#load_from_environ"). Environment variables are prefixed with
+[alltoml.load_from_environ](#load_from_environ). Environment variables are prefixed with
 `<APPLICATION_NAME>_CONFIG.` (or just `CONFIG.` if `application_name` is an empty string). If there
 is a problem parsing an environment variable then a warning is emitted and it is ignored.
 
