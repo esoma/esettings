@@ -39,13 +39,15 @@ def load(
         file_environ_key = "CONFIG"
 
     file_path: Path | None = None
-
-    environ = {**os.environ}
+    # try to find the file path in the environ
     try:
-        file_path = Path(environ.pop(file_environ_key))
+        file_path = Path(os.environ[file_environ_key])
     except KeyError:
         pass
-
+    # try to find the file path in the argv, this will take precedence of the one found in environ
+    #
+    # we remove the arguments from the argv list that load_from_argv will scan so that we don't get
+    # errors about extra arguments
     argv = sys.argv[1:]
     for i in range(len(argv)):
         if argv[i] == "--config":
@@ -56,12 +58,7 @@ def load(
                 sys.exit(1)
             argv = [*argv[:i], *argv[i + 2 :]]
             break
-
-    user_file_base_path = Path(user_data_dir(application_name, application_author))
-    user_file_settings = load_from_file(user_file_base_path, on_failure=_file_on_failure)
-
-    cwd_file_settings = load_from_file(Path("."), on_failure=_file_on_failure)
-
+    # try to load file settings from the path specified by either the environ or argv
     if file_path is None:
         file_settings = {}
     else:
@@ -69,10 +66,11 @@ def load(
         file_name = Path(file_path.name)
         file_settings = load_from_file(file_base_path, name=file_name, on_failure=_file_on_failure)
 
-    environ_settings = load_from_environ(
-        environ, prefix=environ_prefix, on_failure=_environ_on_failure
+    user_file_settings = load_from_file(
+        Path(user_data_dir(application_name, application_author)), on_failure=_file_on_failure
     )
-
+    cwd_file_settings = load_from_file(Path("."), on_failure=_file_on_failure)
+    environ_settings = load_from_environ(prefix=environ_prefix, on_failure=_environ_on_failure)
     argv_settings = load_from_argv(argv, on_extra=_argv_on_extra, on_failure=_argv_on_failure)
 
     return ChainMap(

@@ -125,7 +125,7 @@ def test_load(
         settings = load(application_name, application_author, **kwargs)
 
     load_from_environ_mock.assert_called_once_with(
-        {}, prefix=environ_prefix, on_failure=_environ_on_failure
+        prefix=environ_prefix, on_failure=_environ_on_failure
     )
 
     load_from_file_mock.assert_has_calls(
