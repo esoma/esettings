@@ -46,7 +46,7 @@ def test_load_from_file_error_default(base_path, ex):
 @pytest.mark.parametrize(
     "ex", [OSError, FileNotFoundError, PermissionError, tomllib.TOMLDecodeError]
 )
-def test_load_from_file_error_default(base_path, ex):
+def test_load_from_file_error_custom_on_failure(base_path, ex):
     on_failure = MagicMock()
     with patch("esettings._file.open", side_effect=ex) as open_mock:
         assert load_from_file(base_path, on_failure=on_failure) == {}
