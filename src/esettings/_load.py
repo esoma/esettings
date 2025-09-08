@@ -74,12 +74,12 @@ def load(
     argv_settings = load_from_argv(argv, on_extra=_argv_on_extra, on_failure=_argv_on_failure)
 
     return ChainMap(
-        default_settings,
-        environ_settings,
-        user_file_settings,
-        cwd_file_settings,
-        file_settings,
         argv_settings,
+        file_settings,
+        cwd_file_settings,
+        user_file_settings,
+        environ_settings,
+        default_settings,
     )
 
 

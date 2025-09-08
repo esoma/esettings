@@ -156,14 +156,14 @@ def test_load(
 
     assert isinstance(settings, ChainMap)
     assert settings.maps == [
-        expected_default_settings,
-        load_from_environ_mock.return_value,
-        user_file_settings,
-        cwd_file_settings,
-        file_settings,
         load_from_argv_mock.return_value,
+        file_settings,
+        cwd_file_settings,
+        user_file_settings,
+        load_from_environ_mock.return_value,
+        expected_default_settings,
     ]
-    assert settings.maps[0] is not default_settings
+    assert settings.maps[-1] is not default_settings
 
 
 def test_load_invalid_config_argv(caplog):
