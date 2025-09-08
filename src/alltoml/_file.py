@@ -1,10 +1,9 @@
 __all__ = ["load_from_file"]
 
+import tomllib
 from pathlib import Path
 from typing import Any
 from typing import Callable
-
-import tomllib
 
 
 def load_from_file(

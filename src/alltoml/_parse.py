@@ -1,12 +1,11 @@
 __all__ = ["store_settings"]
 
 from itertools import islice
+from tomllib import TOMLDecodeError
+from tomllib import loads as toml_loads
 from typing import Any
 from typing import Callable
 from typing import Generator
-
-from tomllib import TOMLDecodeError
-from tomllib import loads as toml_loads
 
 
 def store_settings(
@@ -44,7 +43,7 @@ def _convert_value(raw_value: str) -> Any:
     return result["value"]
 
 
-def _convert_key(raw_key: str) -> Generator[str]:
+def _convert_key(raw_key: str) -> Generator[str, None, None]:
     try:
         result = toml_loads(f"{raw_key} = 0")
     except TOMLDecodeError:

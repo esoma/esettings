@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from esettings._parse import store_settings
+from alltoml._parse import store_settings
 
 
 @pytest.mark.parametrize(

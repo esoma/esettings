@@ -10,18 +10,18 @@ import pytest
 from deep_chainmap import DeepChainMap
 from platformdirs import user_data_dir
 
-from esettings import load
-from esettings._load import _argv_on_extra
-from esettings._load import _argv_on_failure
-from esettings._load import _environ_on_failure
-from esettings._load import _file_on_failure
+from alltoml import load
+from alltoml._load import _argv_on_extra
+from alltoml._load import _argv_on_failure
+from alltoml._load import _environ_on_failure
+from alltoml._load import _file_on_failure
 
 
 def test_environ_on_failure(caplog):
     caplog.set_level(logging.INFO)
     _environ_on_failure("a", "b")
     assert caplog.record_tuples == [
-        ("esettings", logging.WARNING, "ignoring invalid environment variable: %r" % ("a",))
+        ("alltoml", logging.WARNING, "ignoring invalid environment variable: %r" % ("a",))
     ]
 
 
@@ -29,7 +29,7 @@ def test_file_on_failure(caplog):
     caplog.set_level(logging.INFO)
     _file_on_failure(Path("a/b"))
     assert caplog.record_tuples == [
-        ("esettings", logging.WARNING, "ignoring invalid config file: %r" % (str(Path("a/b")),))
+        ("alltoml", logging.WARNING, "ignoring invalid config file: %r" % (str(Path("a/b")),))
     ]
 
 
@@ -39,7 +39,7 @@ def test_argv_on_extra(caplog):
         _argv_on_extra("a")
     assert excinfo.value.args == (1,)
     assert caplog.record_tuples == [
-        ("esettings", logging.ERROR, "argument %r was unexpected" % ("a",))
+        ("alltoml", logging.ERROR, "argument %r was unexpected" % ("a",))
     ]
 
 
@@ -47,7 +47,7 @@ def test_argv_on_failure(caplog):
     caplog.set_level(logging.INFO)
     _argv_on_failure("a", "b")
     assert caplog.record_tuples == [
-        ("esettings", logging.WARNING, "ignoring invalid argument: %r" % ("a",))
+        ("alltoml", logging.WARNING, "ignoring invalid argument: %r" % ("a",))
     ]
 
 
@@ -113,9 +113,9 @@ def test_load(
         return user_file_settings
 
     with (
-        patch("esettings._load.load_from_environ") as load_from_environ_mock,
-        patch("esettings._load.load_from_file", side_effect=load_from_file) as load_from_file_mock,
-        patch("esettings._load.load_from_argv") as load_from_argv_mock,
+        patch("alltoml._load.load_from_environ") as load_from_environ_mock,
+        patch("alltoml._load.load_from_file", side_effect=load_from_file) as load_from_file_mock,
+        patch("alltoml._load.load_from_argv") as load_from_argv_mock,
         patch.object(sys, "argv", argv),
         patch.object(os, "environ", environ),
     ):
@@ -173,5 +173,5 @@ def test_load_invalid_config_argv(caplog):
             load("", "")
         assert excinfo.value.args == (1,)
     assert caplog.record_tuples == [
-        ("esettings", logging.ERROR, "argument %r has no value" % ("--config",))
+        ("alltoml", logging.ERROR, "argument %r has no value" % ("--config",))
     ]

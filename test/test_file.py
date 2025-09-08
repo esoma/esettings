@@ -1,12 +1,12 @@
 import tempfile
+import tomllib
 from pathlib import Path
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
-import tomllib
 
-from esettings import load_from_file
+from alltoml import load_from_file
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def base_path():
 
 def test_load_from_file_default(base_path):
     with (
-        patch("esettings._file.open") as open_mock,
+        patch("alltoml._file.open") as open_mock,
         patch.object(tomllib, "load") as tomllib_load_mock,
     ):
         assert load_from_file(base_path) == tomllib_load_mock.return_value
@@ -27,7 +27,7 @@ def test_load_from_file_default(base_path):
 
 def test_load_from_file_custom_name(base_path):
     with (
-        patch("esettings._file.open") as open_mock,
+        patch("alltoml._file.open") as open_mock,
         patch.object(tomllib, "load") as tomllib_load_mock,
     ):
         assert load_from_file(base_path, name=Path("myconfig")) == tomllib_load_mock.return_value
@@ -39,7 +39,7 @@ def test_load_from_file_custom_name(base_path):
     "ex", [OSError, FileNotFoundError, PermissionError, tomllib.TOMLDecodeError]
 )
 def test_load_from_file_error_default(base_path, ex):
-    with patch("esettings._file.open", side_effect=ex) as open_mock:
+    with patch("alltoml._file.open", side_effect=ex) as open_mock:
         assert load_from_file(base_path) == {}
 
 
@@ -48,6 +48,6 @@ def test_load_from_file_error_default(base_path, ex):
 )
 def test_load_from_file_error_custom_on_failure(base_path, ex):
     on_failure = MagicMock()
-    with patch("esettings._file.open", side_effect=ex) as open_mock:
+    with patch("alltoml._file.open", side_effect=ex) as open_mock:
         assert load_from_file(base_path, on_failure=on_failure) == {}
     on_failure.assert_called_once_with(base_path / "config.toml")

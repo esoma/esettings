@@ -6,12 +6,12 @@ from unittest.mock import patch
 
 import pytest
 
-from esettings import load_from_argv
+from alltoml import load_from_argv
 
 
 @pytest.fixture
 def store_settings_mock():
-    with patch("esettings._argv.store_settings") as mock:
+    with patch("alltoml._argv.store_settings") as mock:
         yield mock
 
 

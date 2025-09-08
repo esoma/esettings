@@ -6,12 +6,12 @@ from unittest.mock import patch
 
 import pytest
 
-from esettings import load_from_environ
+from alltoml import load_from_environ
 
 
 @pytest.fixture
 def store_settings_mock():
-    with patch("esettings._environ.store_settings") as mock:
+    with patch("alltoml._environ.store_settings") as mock:
         yield mock
 
 

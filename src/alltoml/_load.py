@@ -15,7 +15,7 @@ from ._argv import load_from_argv
 from ._environ import load_from_environ
 from ._file import load_from_file
 
-_log = getLogger("esettings")
+_log = getLogger("alltoml")
 
 
 def load(

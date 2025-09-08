@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from platformdirs import user_data_dir
 
-import esettings
+import alltoml
 
 defaults = {
     "default": "default",
@@ -76,11 +76,11 @@ def open_patch(path, *args, **kwargs):
 
 
 with (
-    patch("esettings._file.open", side_effect=open_patch),
+    patch("alltoml._file.open", side_effect=open_patch),
     patch.object(os, "environ", environ),
     patch.object(sys, "argv", argv),
 ):
-    config = esettings.load("Example", "esoma", default_settings=defaults)
+    config = alltoml.load("Example", "esoma", default_settings=defaults)
 print(config)
 print("--- defaults:")
 pprint(defaults)
@@ -88,10 +88,10 @@ print("")
 print("--- environ:")
 pprint(environ)
 print("")
-print(f"--- user path file ({ Path(user_data_dir('Example', 'esoma')) / 'config.toml' }):")
+print(f"--- user path file ({Path(user_data_dir('Example', 'esoma')) / 'config.toml'}):")
 print(user_path_file.strip())
 print("")
-print(f"--- cwd path file ({ Path('.') / 'config.toml' }):")
+print(f"--- cwd path file ({Path('.') / 'config.toml'}):")
 print(cwd_path_file.strip())
 print("")
 print("--- environ path file:")
