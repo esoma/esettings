@@ -86,6 +86,7 @@ from esettings._parse import store_settings
     [
         ("a", ("a",)),
         ("a.b", ("a", "b")),
+        ("a.b.c", ("a", "b", "c")),
         ("   a    .    b   ", ("a", "b")),
         ("'a'.'b'", ("a", "b")),
         ('"a"."b"', ("a", "b")),
@@ -100,7 +101,7 @@ from esettings._parse import store_settings
 def test_store_settings_basic(raw_value, expected_value, extra_value, raw_key, expected_key):
     expected_settings = target = {}
     for name in expected_key[:-1]:
-        target = expected_settings.setdefault(name, {})
+        target = target.setdefault(name, {})
     target[expected_key[-1]] = expected_value
 
     settings = {}

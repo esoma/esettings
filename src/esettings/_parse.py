@@ -22,12 +22,12 @@ def store_settings(
     target = settings
     for name in islice(key, len(key) - 1):
         try:
-            target = settings[name]
+            target = target[name]
             if not isinstance(target, dict):
                 fail()
                 return
         except KeyError:
-            target = settings[name] = {}
+            target[name] = target = {}
     if key[-1] in target:
         fail()
         return

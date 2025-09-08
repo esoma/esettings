@@ -127,6 +127,18 @@ files = [
 toml = ["tomli ; python_full_version <= \"3.11.0a6\""]
 
 [[package]]
+name = "deep-chainmap"
+version = "0.1.3"
+description = "A recursive subclass of `collections.ChainMap`"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "deep_chainmap-0.1.3-py3-none-any.whl", hash = "sha256:70d6188cd9e47fa855553ef81aeac48bf69a3bcabe62a343888d6eddcc159b32"},
+    {file = "deep_chainmap-0.1.3.tar.gz", hash = "sha256:0b0e8489ecb9d359b37a281f7709ccb991f6f1a6c6e2b7280025069669331020"},
+]
+
+[[package]]
 name = "iniconfig"
 version = "2.1.0"
 description = "brain-dead simple config-ini parsing"
@@ -387,4 +399,4 @@ typing-extensions = ">=4.12.0"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "e6a1a0903c7b6a90183df9423956b720f9f8f371b32290ccc915ea89618f1011"
+content-hash = "1870cab1adb79ae5b0ccf0f37b5e2ba996566c07a84326fdf76e22e0d4182663"

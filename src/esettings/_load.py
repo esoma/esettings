@@ -3,12 +3,12 @@ __all__ = ["load"]
 import os
 import re
 import sys
-from collections import ChainMap
 from logging import getLogger
 from pathlib import Path
 from typing import Any
 from typing import Mapping
 
+from deep_chainmap import DeepChainMap
 from platformdirs import user_data_dir
 
 from ._argv import load_from_argv
@@ -73,7 +73,7 @@ def load(
     environ_settings = load_from_environ(prefix=environ_prefix, on_failure=_environ_on_failure)
     argv_settings = load_from_argv(argv, on_extra=_argv_on_extra, on_failure=_argv_on_failure)
 
-    return ChainMap(
+    return DeepChainMap(
         argv_settings,
         file_settings,
         cwd_file_settings,

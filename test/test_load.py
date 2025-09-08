@@ -1,13 +1,13 @@
 import logging
 import os
 import sys
-from collections import ChainMap
 from pathlib import Path
 from unittest.mock import MagicMock
 from unittest.mock import call
 from unittest.mock import patch
 
 import pytest
+from deep_chainmap import DeepChainMap
 from platformdirs import user_data_dir
 
 from esettings import load
@@ -154,7 +154,7 @@ def test_load(
         [], on_extra=_argv_on_extra, on_failure=_argv_on_failure
     )
 
-    assert isinstance(settings, ChainMap)
+    assert isinstance(settings, DeepChainMap)
     assert settings.maps == [
         load_from_argv_mock.return_value,
         file_settings,
