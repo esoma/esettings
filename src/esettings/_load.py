@@ -1,5 +1,6 @@
 __all__ = ["load"]
 
+import os
 import re
 import sys
 from collections import ChainMap
@@ -30,17 +31,58 @@ def load(
     assert isinstance(default_settings, dict)
 
     if application_name.strip():
-        environ_prefix = re.sub(r"[\-\s_]+", "_", application_name.strip()).upper() + "_CONFIG."
+        base_env_prefix = re.sub(r"[\-\s_]+", "_", application_name.strip()).upper()
+        environ_prefix = f"{base_env_prefix}_CONFIG."
+        file_environ_key = f"{base_env_prefix}_CONFIG"
     else:
         environ_prefix = "CONFIG."
-    environ_settings = load_from_environ(prefix=environ_prefix, on_failure=_environ_on_failure)
+        file_environ_key = "CONFIG"
 
-    file_base_path = Path(user_data_dir(application_name, application_author))
-    file_settings = load_from_file(file_base_path, on_failure=_file_on_failure)
+    file_path: Path | None = None
 
-    argv_settings = load_from_argv(on_extra=_argv_on_extra, on_failure=_argv_on_failure)
+    environ = {**os.environ}
+    try:
+        file_path = Path(environ.pop(file_environ_key))
+    except KeyError:
+        pass
 
-    return ChainMap(default_settings, environ_settings, file_settings, argv_settings)
+    argv = sys.argv[1:]
+    for i in range(len(argv)):
+        if argv[i] == "--config":
+            try:
+                file_path = Path(argv[i + 1])
+            except IndexError:
+                _log.error("argument %r has no value", "--config")
+                sys.exit(1)
+            argv = [*argv[:i], *argv[i + 2 :]]
+            break
+
+    user_file_base_path = Path(user_data_dir(application_name, application_author))
+    user_file_settings = load_from_file(user_file_base_path, on_failure=_file_on_failure)
+
+    cwd_file_settings = load_from_file(Path("."), on_failure=_file_on_failure)
+
+    if file_path is None:
+        file_settings = {}
+    else:
+        file_base_path = file_path.parent
+        file_name = Path(file_path.name)
+        file_settings = load_from_file(file_base_path, name=file_name, on_failure=_file_on_failure)
+
+    environ_settings = load_from_environ(
+        environ, prefix=environ_prefix, on_failure=_environ_on_failure
+    )
+
+    argv_settings = load_from_argv(argv, on_extra=_argv_on_extra, on_failure=_argv_on_failure)
+
+    return ChainMap(
+        default_settings,
+        environ_settings,
+        user_file_settings,
+        cwd_file_settings,
+        file_settings,
+        argv_settings,
+    )
 
 
 def _environ_on_failure(key: str, value: str) -> None:
