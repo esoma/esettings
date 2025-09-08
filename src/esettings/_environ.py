@@ -22,7 +22,7 @@ def load_from_environ(
     environ: Mapping[str, str] | None = None,
     *,
     prefix: str = "CONFIG.",
-    on_failure: Callable[[str, str | None], None] = lambda n, v: None,
+    on_failure: Callable[[str, str], None] = lambda n, v: None,
 ) -> dict[str, Any]:
     settings: dict[str, Any] = {}
 

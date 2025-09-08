@@ -21,7 +21,7 @@ def test_load_from_file_default(base_path):
         patch.object(tomllib, "load") as tomllib_load_mock,
     ):
         assert load_from_file(base_path) == tomllib_load_mock.return_value
-    open_mock.assert_called_once_with(base_path / "config.toml", "rb", encoding="utf8")
+    open_mock.assert_called_once_with(base_path / "config.toml", "rb")
     tomllib_load_mock.assert_called_once_with(open_mock.return_value.__enter__.return_value)
 
 
@@ -31,7 +31,7 @@ def test_load_from_file_custom_name(base_path):
         patch.object(tomllib, "load") as tomllib_load_mock,
     ):
         assert load_from_file(base_path, name=Path("myconfig")) == tomllib_load_mock.return_value
-    open_mock.assert_called_once_with(base_path / "myconfig", "rb", encoding="utf8")
+    open_mock.assert_called_once_with(base_path / "myconfig", "rb")
     tomllib_load_mock.assert_called_once_with(open_mock.return_value.__enter__.return_value)
 
 
@@ -50,4 +50,4 @@ def test_load_from_file_error_custom_on_failure(base_path, ex):
     on_failure = MagicMock()
     with patch("esettings._file.open", side_effect=ex) as open_mock:
         assert load_from_file(base_path, on_failure=on_failure) == {}
-    on_failure.assert_called_once_with()
+    on_failure.assert_called_once_with(base_path / "config.toml")
